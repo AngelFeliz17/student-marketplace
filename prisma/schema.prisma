@@ -1,0 +1,207 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum ItemCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+  POOR
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD
+  ARCHIVED
+  REMOVED
+}
+
+model User {
+  id                      String          @id @default(cuid())
+  email                   String          @unique
+  password                String
+  firstName               String
+  lastName                String
+  profilePicture          String?
+  bio                     String?
+
+  universityId            String
+  university              University      @relation(fields: [universityId], references: [id])
+  verified                Boolean         @default(false)
+
+  role                    UserRole        @default(USER)
+
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  deletedAt               DateTime?
+
+  listings                Listing[]
+  sentMessages            Message[]       @relation("SentMessages")
+
+  asBuyerConversation     Conversation[]  @relation("AsBuyerConversation")
+
+  favorites               Favorite[]
+  reports                 Report[]
+
+  code                    EmailVerificationCode?
+}
+
+model University {
+  id              String          @id @default(cuid())
+  name            String          @unique
+  
+  emailDomains    EmailDomain[]
+
+  users           User[]
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model EmailDomain {
+  id              String          @id @default(cuid())
+  domain          String          @unique
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  universityId    String
+  university      University   @relation(fields: [universityId], references: [id])       
+
+}
+
+model EmailVerificationCode {
+  id              String          @id @default(cuid())
+  code            String
+  userId          String          @unique
+  expiresAt       DateTime
+  
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Listing {
+  id              String          @id @default(cuid())
+  title           String
+  description     String
+  price           Decimal         @db.Decimal(10, 2)
+  condition       ItemCondition
+  status          ListingStatus   @default(ACTIVE)
+  location        String?
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
+
+  sellerId        String
+  seller          User            @relation(fields: [sellerId], references: [id])
+
+  categoryId      String
+  category        Category        @relation(fields: [categoryId], references: [id])
+
+  images          ListingImage[]
+
+  favorites       Favorite[]
+
+  reports         Report[]
+
+  conversations   Conversation[]
+
+  @@index([categoryId])
+  @@index([sellerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Category {
+  id              String          @id @default(cuid())
+  name            String          @unique
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  listings        Listing[]
+}
+
+model ListingImage {
+  id              String          @id @default(cuid())
+  url             String
+  
+  order           Int
+  
+  createdAt       DateTime        @default(now())
+
+  listingId       String
+  listing         Listing         @relation(fields: [listingId], references: [id])
+
+  @@unique([listingId, order])
+}
+
+model Conversation {
+  id              String          @id @default(cuid())
+
+  createdAt       DateTime        @default(now())
+
+  listingId       String
+  listing         Listing         @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  buyerId         String
+  buyer           User            @relation("AsBuyerConversation", fields: [buyerId], references: [id], onDelete: Cascade)
+
+  messages        Message[]
+
+  @@unique([listingId, buyerId])
+
+  @@index([buyerId])
+}
+
+model Message {
+  id              String          @id @default(cuid())
+  content         String
+
+  createdAt       DateTime        @default(now())
+
+  conversationId  String
+  conversation    Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId        String
+  sender          User            @relation("SentMessages", fields: [senderId], references: [id])
+
+  @@index([conversationId])
+}
+
+model Favorite {
+  createdAt       DateTime       @default(now())
+
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  listingId       String
+  listing         Listing        @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@id([listingId, userId])
+}
+
+model Report {
+  id              String            @id @default(cuid())
+  reason          String
+
+  createdAt       DateTime          @default(now())
+
+  reporterId      String
+  reporter        User              @relation(fields: [reporterId], references: [id])
+
+  listingId       String
+  listing         Listing           @relation(fields: [listingId], references: [id])
+}
