@@ -26,7 +26,7 @@ export class AuthService{
             }
             const existingUser = await this.prisma.user.findFirst({ where: { email: dto.email } });
             if(existingUser?.deletedAt) throw new UnauthorizedException('Account has been deleted. Sign in to restore');
-            // if(!existingUser?.suspended) throw new UnauthorizedException("Account is suspended. Check your email for more information");
+            if(existingUser?.suspended) throw new UnauthorizedException("Account is suspended. Check your email for more information");
 
             const user = await this.prisma.user.create({
                 data: {
@@ -63,7 +63,7 @@ export class AuthService{
 
         if(!user) throw new ForbiddenException("Invalid credentials");
         if(!user.verified) throw new UnauthorizedException("You haven't verified your account, try again.");
-        // if(!user.suspended) throw new UnauthorizedException("Account is suspended. Check your email for more information");
+        if(user.suspended) throw new UnauthorizedException("Account is suspended. Check your email for more information");
         
         const verifyPass = await argon.verify(user.password, dto.password);
         if(!verifyPass) throw new ForbiddenException("Invalid credentials");

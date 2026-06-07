@@ -17,12 +17,23 @@ async function main() {
 
   const university = await prisma.university.upsert({
     where: {
-      name: 'University of Northern Iowa',
+      name: process.env.UNIVERSITY_NAME!,
     },
     update: {},
     create: {
-      name: 'University of Northern Iowa',
+      name: process.env.UNIVERSITY_NAME!,
     },
+  });
+
+  await prisma.emailDomain.upsert({
+    where: {
+      domain: process.env.EMAIL_DOMAIN!
+    },
+    update: {},
+    create: {
+      domain: process.env.EMAIL_DOMAIN!,
+      universityId: university.id
+    }
   });
 
   if(!process.env.ADMIN_EMAIL) throw new Error("ADMIN_EMAIL is missing");
