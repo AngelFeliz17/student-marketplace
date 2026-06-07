@@ -1,23 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { v2 as cloudinaryListing, v2 as cloudinaryAvatar } from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 import { ConfigService } from '@nestjs/config';
-import { rejects } from 'assert';
 
 @Injectable()
 export class CloudinaryService {
     constructor(private config: ConfigService) {
-        cloudinaryListing.config({
-            cloud_name: config.get("CLOUDINARY_NAME"),
-            api_key: config.get("CLOUDINARY_LISTING_API_KEY"),
-            api_secret: config.get("CLOUDINARY_LISTING_API_SECRET"),
+        cloudinary.config({
+            cloud_name: this.config.get("CLOUDINARY_NAME"),
+            api_key: this.config.get("CLOUDINARY_API_KEY"),
+            api_secret: this.config.get("CLOUDINARY_API_SECRET"),
         })
     }
 
     async uploadListingImg(file: Express.Multer.File) {
-        return new Promise((resolve, reject) => cloudinaryListing.uploader.upload_stream( { folder: this.config.get("CLOUDINARY_LISTING_FOLDER_NAME") }, (error, result) => {
+        return new Promise((resolve, reject) => cloudinary.uploader.upload_stream( { folder: "student marketplace/listings" }, (error, result) => {
                 if(error) return reject(error);
                 resolve(result);
         }).end(file.buffer))
+    }
+
+    async deleteImage(publicId: string) {
+        return cloudinary.uploader.destroy(publicId);
     }
 }

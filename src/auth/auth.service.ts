@@ -1,4 +1,4 @@
-import  { BadRequestException, ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common" 
+import  { BadRequestException, ConflictException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from "@nestjs/common" 
 import { ChangeForgottenPasswordDto, ChangePasswordDto, EmailDto, ForgotPasswordDto, SignInDto, SignUpDto, VerifyCodeDto} from "./dto"
 import * as argon from "argon2"
 import { PrismaService } from "src/prisma/prisma.service";
@@ -9,11 +9,12 @@ import { EmailService } from "../email/email.service";
 import * as crypto from "crypto";
 import { User } from "generated/prisma/browser";
 import { DomainService } from "src/domain/domain.service";
+import { UserService } from "src/user/user.service";
 
 @Injectable()
 
 export class AuthService{
-    constructor(private prisma: PrismaService, private jwt: JwtService, private config: ConfigService, private sendEmail: EmailService, private domain: DomainService ) {}
+    constructor(private prisma: PrismaService, private jwt: JwtService, private config: ConfigService, private sendEmail: EmailService, private domain: DomainService, private userService: UserService ) {}
 
     async signUp(dto: SignUpDto) {
         const hash = await argon.hash(dto.password);
@@ -23,6 +24,9 @@ export class AuthService{
             if(!domain) {
                 throw new ForbiddenException("University domain not found");
             }
+            const existingUser = await this.prisma.user.findFirst({ where: { email: dto.email } });
+            if(existingUser?.deletedAt) throw new UnauthorizedException('Account has been deleted. Sign in to restore');
+            // if(!existingUser?.suspended) throw new UnauthorizedException("Account is suspended. Check your email for more information");
 
             const user = await this.prisma.user.create({
                 data: {
@@ -58,10 +62,14 @@ export class AuthService{
         }});
 
         if(!user) throw new ForbiddenException("Invalid credentials");
-        if(!user.verified) throw new ForbiddenException("You haven't verified your account, try again.");
+        if(!user.verified) throw new UnauthorizedException("You haven't verified your account, try again.");
+        // if(!user.suspended) throw new UnauthorizedException("Account is suspended. Check your email for more information");
         
         const verifyPass = await argon.verify(user.password, dto.password);
         if(!verifyPass) throw new ForbiddenException("Invalid credentials");
+        if(user.deletedAt) {
+            await this.userService.restore(user.id);   
+        }
         
         return this.signToken(user.id, user.email);
     }
@@ -188,6 +196,7 @@ export class AuthService{
         const user = await this.prisma.user.findUnique({ where: { email: dto.email }, include: { code: true } });
 
         if(!user) throw new NotFoundException("Email not found");
+        if(user.deletedAt) throw new NotFoundException("Account has been deleted")
         if(user.verified) throw new ForbiddenException("You are already verified");
         if(!user.code) throw new ForbiddenException("You haven't requested a code");
         if(user.code.expiresAt.getTime() < Date.now()) { 

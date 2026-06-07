@@ -42,6 +42,7 @@ model User {
   universityId            String
   university              University      @relation(fields: [universityId], references: [id])
   verified                Boolean         @default(false)
+  suspended               Boolean         @default(false)
 
   role                    UserRole        @default(USER)
 
@@ -149,13 +150,13 @@ model Category {
 model ListingImage {
   id              String          @id @default(cuid())
   url             String
-  
+  publicId        String
   order           Int
   
   createdAt       DateTime        @default(now())
 
   listingId       String
-  listing         Listing         @relation(fields: [listingId], references: [id])
+  listing         Listing         @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@unique([listingId, order])
 }
