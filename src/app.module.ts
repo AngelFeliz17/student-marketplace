@@ -13,6 +13,7 @@ import { FavoritesModule } from './favorites/favorites.module';
 import { MessageModule } from './message/message.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { ReportModule } from './report/report.module';
+import { FilterModule } from './filter/filter.module';
 
 @Module({
   imports: [AuthModule, UserModule, PrismaModule, UniversityModule, DomainModule, CategoryModule, ListingModule, ThrottlerModule.forRoot([
@@ -20,7 +21,7 @@ import { ReportModule } from './report/report.module';
         ttl: 60000,
         limit: 5,
       },
-    ]), CloudinaryModule, FavoritesModule, MessageModule, ConversationModule, ReportModule],
+    ]), CloudinaryModule, FavoritesModule, MessageModule, ConversationModule, ReportModule, FilterModule],
     providers: [
       {
         provide: APP_GUARD,
