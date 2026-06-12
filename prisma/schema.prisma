@@ -32,8 +32,7 @@ model User {
   id                      String          @id @default(cuid())
   email                   String          @unique
   password                String
-  firstName               String
-  lastName                String
+  name                    String
   profilePicture          String?
   bio                     String?
   major                   String?

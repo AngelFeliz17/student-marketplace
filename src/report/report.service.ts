@@ -26,7 +26,7 @@ export class ReportService {
 
     async findByAdmin() {
         return await this.prismaService.report.findMany({ include: { reporter: {
-            select: { id: true, firstName: true, lastName: true, email: true }
-        }, listing: { select: { id: true, title: true, seller: { select: { id: true, firstName: true, lastName: true, email: true } } } } }, orderBy: { createdAt: 'desc' }});
+            select: { id: true, name: true, email: true }
+        }, listing: { select: { id: true, title: true, seller: { select: { id: true, name: true, email: true } } } } }, orderBy: { createdAt: 'desc' }});
     }
 }

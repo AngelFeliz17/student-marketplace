@@ -10,7 +10,7 @@ export class EmailService {
         this.resend = new Resend(this.config.get("RESEND_API_KEY"));
     }
 
-    async sendVerificationCode(email: string, firstName: string, code: string, expiresAt: Date) {
+    async sendVerificationCode(email: string, name: string, code: string, expiresAt: Date) {
         try {
             const formattedDate = expiresAt.toLocaleTimeString([], {
                 hour: '2-digit',
@@ -24,7 +24,7 @@ export class EmailService {
                 html: `
                     <h2>Email Verification</h2>
 
-                    <p>Hi ${firstName},</p>
+                    <p>Hi ${name},</p>
 
                     <p>Your verification code is:</p>
 
@@ -40,14 +40,14 @@ export class EmailService {
         }
     }
 
-    async sendWelcomingEmail(email: string, firstName: string) {
+    async sendWelcomingEmail(email: string, name: string) {
         try {
             await this.resend.emails.send({
                 from: 'onboarding@resend.dev',
                 to: 'angelsfeliz@hotmail.com',
                 subject: 'Welcome to Student Marketplace',
                 html: `
-                    <h2>Welcome to Panther Marketplace, ${firstName} 🎉</h2>
+                    <h2>Welcome to Panther Marketplace, ${name} 🎉</h2>
 
                     <p>
                     Your account has been successfully verified and we're excited to have you join our community.

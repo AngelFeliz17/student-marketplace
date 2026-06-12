@@ -1,14 +1,14 @@
 services:
-  marketplace-db:
+  pantherx:
     image: postgres:13
     ports:
       - 5434:5432
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
-      POSTGRES_DB: student_marketplace
+      POSTGRES_DB: pantherx-db
     networks:
-      - marketplace
+      - pantherx
 
 networks:
-  marketplace:
+  pantherx:

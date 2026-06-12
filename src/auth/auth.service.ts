@@ -31,8 +31,7 @@ export class AuthService{
             const user = await this.prisma.user.create({
                 data: {
                     email: dto.email,
-                    firstName: dto.firstName,
-                    lastName: dto.lastName,
+                    name: dto.name,
                     universityId: domain.universityId,
                     password: hash
                 },
@@ -188,7 +187,7 @@ export class AuthService{
             expiresAt
         }});
 
-        await this.sendEmail.sendVerificationCode(user.email, user.firstName, codeDigits, expiresAt)
+        await this.sendEmail.sendVerificationCode(user.email, user.name, codeDigits, expiresAt)
         return { msg: "Code has been sent" }
     }
 
@@ -215,7 +214,7 @@ export class AuthService{
         await this.prisma.user.update({ where: { id: user.id }, data: { verified: true }});
 
         await this.prisma.emailVerificationCode.delete({ where: { id: user.code.id }});
-        await this.sendEmail.sendWelcomingEmail(user.email, user.firstName);
+        await this.sendEmail.sendWelcomingEmail(user.email, user.name);
         const access_token = await this.signToken(user.id, user.email);
 
         return { msg: "Account verified successfully", ...access_token };

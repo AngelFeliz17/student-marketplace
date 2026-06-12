@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from "class-validator";
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
 import { Trim } from "src/decorator";
 
 export class SignUpDto {
@@ -15,12 +15,7 @@ export class SignUpDto {
   @IsNotEmpty()
   @IsString()
   @Trim()
-  firstName: string;
-
-  @IsNotEmpty()
-  @IsString()
-  @Trim()
-  lastName: string;
+  name: string;
 }
 
 export class SignInDto {

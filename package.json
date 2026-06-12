@@ -6,8 +6,8 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "db:dev:rm": "docker compose rm marketplace-db -s -f -v",
-    "db:dev:up": "docker compose up marketplace-db -d",
+    "db:dev:rm": "docker compose rm pantherx -s -f -v",
+    "db:dev:up": "docker compose up pantherx -d",
     "prisma:dev:deploy": "prisma migrate deploy",
     "db:dev:restart": "npm run db:dev:rm && npm run db:dev:up && sleep 1 && npm run prisma:dev:deploy",
     "build": "nest build",
